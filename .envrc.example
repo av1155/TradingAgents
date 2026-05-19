@@ -1,0 +1,18 @@
+# Project-level direnv hook. Copy to `.envrc` and run `direnv allow` once.
+#
+# Optional. The global `_venv_auto_activate` zsh hook (see SETUP.md) already
+# walks up to find a `.venv/` and prepends it to PATH on `chpwd`, so direnv is
+# only needed when you also want per-project env exports beyond the venv.
+
+if [ -d .venv ]; then
+    export VIRTUAL_ENV="$PWD/.venv"
+    PATH_add "$VIRTUAL_ENV/bin"
+fi
+
+# Self-hosted LLM. DEFAULT_CONFIG reads TRADINGAGENTS_* at import; uncomment
+# to override without touching main.py.
+#
+# export TRADINGAGENTS_LLM_PROVIDER="ollama"
+# export TRADINGAGENTS_LLM_BACKEND_URL="http://127.0.0.1:11434/v1"
+# export TRADINGAGENTS_DEEP_THINK_LLM="qwen3.6-27b-agent"
+# export TRADINGAGENTS_QUICK_THINK_LLM="qwen3.6-27b-agent"
