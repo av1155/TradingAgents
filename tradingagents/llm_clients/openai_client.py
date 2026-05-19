@@ -136,6 +136,27 @@ class MinimaxChatOpenAI(NormalizedChatOpenAI):
         return payload
 
 
+class OllamaChatOpenAI(NormalizedChatOpenAI):
+    """Ollama / llama.cpp / LM Studio — OpenAI-compatible local servers.
+
+    These backends accept ``tool_choice`` only as a string ("auto",
+    "required", or a function name). The OpenAI-spec object form
+    ``{"type":"function","function":{"name":...}}`` — what langchain-openai
+    sends for ``method="function_calling"`` against any model not in the
+    capability table — trips llama.cpp's parser ("Wrong type supplied for
+    parameter 'tool_choice'. Expected 'string'") and falls back to default
+    tool_choice behavior. Forcing ``method="json_schema"`` binds the schema
+    via ``response_format`` and skips ``tool_choice`` entirely, which is
+    what these servers actually want — they support strict json_schema
+    grammar uniformly. Caller can still override with explicit ``method=``.
+    """
+
+    def with_structured_output(self, schema, *, method=None, **kwargs):
+        if method is None:
+            method = "json_schema"
+        return super().with_structured_output(schema, method=method, **kwargs)
+
+
 # Kwargs forwarded from user config to ChatOpenAI
 _PASSTHROUGH_KWARGS = (
     "timeout", "max_retries", "reasoning_effort",
@@ -238,6 +259,8 @@ class OpenAIClient(BaseLLMClient):
             chat_cls = DeepSeekChatOpenAI
         elif self.provider in ("minimax", "minimax-cn"):
             chat_cls = MinimaxChatOpenAI
+        elif self.provider == "ollama":
+            chat_cls = OllamaChatOpenAI
         else:
             chat_cls = NormalizedChatOpenAI
         return chat_cls(**llm_kwargs)
